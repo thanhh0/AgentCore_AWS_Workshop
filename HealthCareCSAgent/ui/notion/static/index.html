@@ -523,18 +523,51 @@ const BASE = (() => {
 })();
 function apiUrl(path) { return BASE + path.replace(/^\//, ''); }
 
+function generateId() { return 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7); }
+function generateSessionId() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
+
 const CURRENT_CUSTOMER = 'C-1001';
 
+const SAMPLE_CHATS = {
+  'sample-1': {
+    id: 'sample-1',
+    sessionId: generateSessionId(),
+    title: 'Telehealth setup for new clinicians',
+    messages: [
+      { role: 'user', content: 'How do I onboard new clinicians to our telehealth platform?' },
+      { role: 'assistant', content: 'To onboard new clinicians to your telehealth platform:\n\n1. Log in to the Provider Portal at portal.healthsaas.example.com\n2. Navigate to Settings > Team Management\n3. Click "Invite Clinician" and enter their details\n4. Each clinician must complete identity verification (AHPRA) before conducting consultations\n5. Once verified, they can set their availability windows under Settings > Telehealth Configuration\n\nWould you like me to walk you through any of these steps in more detail?' },
+    ],
+    created: Date.now() - 86400000,
+  },
+  'sample-2': {
+    id: 'sample-2',
+    sessionId: generateSessionId(),
+    title: 'Invoice dispute process',
+    messages: [
+      { role: 'user', content: 'I think there\'s an error on my latest invoice. How do I dispute it?' },
+      { role: 'assistant', content: 'To dispute an invoice, you need to contact billing@healthsaas.example.com within 14 days of the invoice date.\n\nKey details:\n- Invoices are issued on the 1st of each month for prior month usage\n- Payment terms are Net 30 days\n- Include your customer ID (C-1001) and the specific invoice number in your dispute\n\nWould you like me to look up your recent invoices, or is there anything else I can help with?' },
+    ],
+    created: Date.now() - 172800000,
+  },
+  'sample-3': {
+    id: 'sample-3',
+    sessionId: generateSessionId(),
+    title: 'E-prescription integration help',
+    messages: [
+      { role: 'user', content: 'Can you help me set up e-prescription integration?' },
+      { role: 'assistant', content: 'Of course! To set up e-prescription integration:\n\n1. Go to Settings > Telehealth Configuration in the Provider Portal\n2. Select "E-Prescription Integration"\n3. You\'ll need to complete AHPRA verification first if you haven\'t already\n4. Once verified, enable the integration and configure your preferred pharmacy network\n\nThis feature is included in your Enterprise Telehealth plan. Is there a specific part of the setup you\'re having trouble with?' },
+    ],
+    created: Date.now() - 432000000,
+  },
+};
+
 const state = {
-  chats: {},
+  chats: { ...SAMPLE_CHATS },
   currentChatId: null,
   model: 'nova-pro',
   sidebarTab: 'chats',
   view: 'welcome',
 };
-
-function generateId() { return 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7); }
-function generateSessionId() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
 
 // Sidebar
 function toggleSidebar() {
@@ -855,6 +888,7 @@ function switchProfileTab(tab, btn) {
 }
 
 // Init
+updateChatList();
 document.getElementById('chat-input').addEventListener('input', function() {
   document.getElementById('send-btn').disabled = !this.value.trim();
 });
