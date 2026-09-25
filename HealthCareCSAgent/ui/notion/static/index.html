@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HealthCare CS Agent</title>
+<style>
+:root {
+  --bg-primary: #191919;
+  --bg-secondary: #202020;
+  --bg-sidebar: #1e1e1e;
+  --bg-hover: #2c2c2c;
+  --bg-active: #333;
+  --bg-input: #2c2c2c;
+  --bg-pill: #2c2c2c;
+  --bg-pill-active: #404040;
+  --text-primary: #e0e0e0;
+  --text-secondary: #8a8a8a;
+  --text-muted: #5a5a5a;
+  --border: #2e2e2e;
+  --accent: #5b9bd5;
+  --accent-hover: #4a8cc4;
+  --danger: #e06c75;
+  --success: #98c379;
+  --warning: #e5c07b;
+  --sidebar-width: 260px;
+  --radius: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+.app { display: flex; height: 100vh; }
+
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  background: var(--bg-sidebar);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  transition: width 0.2s ease, opacity 0.2s ease;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.sidebar.collapsed { width: 0; border-right: none; }
+.sidebar-header {
+  padding: 12px 12px 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sidebar-toggle {
+  background: none; border: none; color: var(--text-secondary);
+  cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 18px;
+  display: flex; align-items: center;
+}
+.sidebar-toggle:hover { background: var(--bg-hover); }
+.sidebar-header-right { margin-left: auto; display: flex; gap: 4px; }
+.sidebar-header-right button {
+  background: none; border: none; color: var(--text-secondary);
+  cursor: pointer; padding: 4px 6px; border-radius: 4px; font-size: 16px;
+}
+.sidebar-header-right button:hover { background: var(--bg-hover); }
+
+.sidebar-pills {
+  display: flex; padding: 4px 12px; gap: 4px;
+}
+.pill {
+  flex: 1; padding: 6px 0; text-align: center; font-size: 13px; font-weight: 500;
+  background: var(--bg-pill); border: none; color: var(--text-secondary);
+  border-radius: 6px; cursor: pointer; transition: all 0.15s;
+}
+.pill.active { background: var(--bg-pill-active); color: var(--text-primary); }
+.pill:hover:not(.active) { background: var(--bg-hover); }
+
+.sidebar-content { flex: 1; overflow-y: auto; padding: 8px 8px; }
+
+.new-chat-btn {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; margin: 4px 0 8px; width: 100%;
+  background: none; border: none; color: var(--text-secondary);
+  border-radius: 6px; cursor: pointer; font-size: 13px; text-align: left;
+}
+.new-chat-btn:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.chat-section-label {
+  font-size: 11px; font-weight: 600; color: var(--text-muted);
+  padding: 12px 10px 4px; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.chat-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 6px 10px; border-radius: 6px; cursor: pointer;
+  font-size: 13px; color: var(--text-secondary); border: none;
+  background: none; width: 100%; text-align: left;
+}
+.chat-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+.chat-item.active { background: var(--bg-active); color: var(--text-primary); }
+.chat-item-icon { font-size: 15px; opacity: 0.6; }
+.chat-item-text { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Sidebar footer */
+.sidebar-footer {
+  padding: 8px 12px; border-top: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.sidebar-footer-avatar {
+  width: 24px; height: 24px; border-radius: 4px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px; font-weight: 600; color: #fff;
+}
+.sidebar-footer-name {
+  font-size: 13px; color: var(--text-secondary); flex: 1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+
+/* Main content */
+.main { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+
+.main-header {
+  display: flex; align-items: center; padding: 8px 16px; gap: 8px;
+  border-bottom: 1px solid var(--border); min-height: 44px;
+}
+.main-header .sidebar-toggle { display: none; }
+.sidebar.collapsed ~ .main .main-header .sidebar-toggle { display: flex; }
+
+/* Welcome / New Chat */
+.welcome {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 16px; padding: 40px;
+}
+.welcome-icon {
+  width: 120px; height: 120px; border-radius: 50%; overflow: hidden;
+  position: relative;
+}
+.welcome-icon canvas {
+  width: 100%; height: 100%; border-radius: 50%;
+}
+.welcome h1 {
+  font-size: 28px; font-weight: 600; color: var(--text-primary);
+}
+
+/* Chat area */
+.chat-area {
+  flex: 1; overflow-y: auto; padding: 24px 0;
+  display: none; flex-direction: column;
+}
+.chat-area.active { display: flex; }
+.messages { max-width: 720px; margin: 0 auto; width: 100%; padding: 0 24px; }
+.message { margin-bottom: 24px; }
+.message-role {
+  font-size: 13px; font-weight: 600; margin-bottom: 4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.message-role.user { color: var(--text-primary); }
+.message-role.assistant { color: var(--accent); }
+.message-role .role-icon { font-size: 14px; }
+.message-content {
+  font-size: 14px; line-height: 1.65; color: var(--text-primary);
+  white-space: pre-wrap; word-break: break-word;
+}
+.message-content p { margin-bottom: 8px; }
+.message-content p:last-child { margin-bottom: 0; }
+.message-content code {
+  background: var(--bg-input); padding: 1px 4px; border-radius: 3px; font-size: 13px;
+}
+.message-content pre {
+  background: var(--bg-input); padding: 12px; border-radius: 6px;
+  overflow-x: auto; margin: 8px 0;
+}
+.message-content ul, .message-content ol { padding-left: 20px; margin: 8px 0; }
+
+.typing-indicator { display: flex; gap: 4px; padding: 8px 0; }
+.typing-indicator span {
+  width: 6px; height: 6px; background: var(--text-muted); border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes bounce {
+  0%, 60%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-6px); }
+}
+
+/* Input area */
+.input-area {
+  padding: 12px 24px 20px; max-width: 720px; margin: 0 auto; width: 100%;
+}
+.input-wrapper {
+  background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 12px; overflow: hidden; transition: border-color 0.15s;
+}
+.input-wrapper:focus-within { border-color: var(--text-muted); }
+.input-textarea {
+  width: 100%; padding: 14px 16px 8px; background: transparent; border: none;
+  color: var(--text-primary); font-size: 14px; font-family: inherit;
+  resize: none; outline: none; min-height: 44px; max-height: 180px;
+}
+.input-textarea::placeholder { color: var(--text-muted); }
+.input-footer {
+  display: flex; align-items: center; padding: 4px 8px 8px; gap: 4px;
+}
+.input-footer-left { display: flex; align-items: center; gap: 2px; }
+.input-footer-right { margin-left: auto; display: flex; align-items: center; gap: 6px; }
+
+.model-btn {
+  display: flex; align-items: center; gap: 4px;
+  padding: 4px 10px; border-radius: 6px; font-size: 12px;
+  background: var(--bg-pill); border: 1px solid transparent;
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  position: relative; white-space: nowrap;
+}
+.model-btn:hover { background: var(--bg-pill-active); color: var(--text-primary); }
+.model-btn .model-icon { font-size: 13px; }
+
+.send-btn {
+  width: 32px; height: 32px; border-radius: 50%; background: var(--text-primary);
+  border: none; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.15s;
+}
+.send-btn:disabled { opacity: 0.3; cursor: default; }
+.send-btn svg { width: 16px; height: 16px; }
+
+/* Dropdown menus */
+.dropdown {
+  position: absolute; bottom: 100%; left: 0; margin-bottom: 6px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 4px; min-width: 200px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4); z-index: 100; display: none;
+}
+.dropdown.open { display: block; }
+.dropdown-item {
+  display: flex; flex-direction: column; padding: 8px 10px;
+  border-radius: 6px; cursor: pointer; gap: 2px;
+  border: none; background: none; width: 100%; text-align: left;
+}
+.dropdown-item:hover { background: var(--bg-hover); }
+.dropdown-item-label {
+  font-size: 13px; color: var(--text-primary); font-weight: 500;
+  display: flex; align-items: center; gap: 6px;
+}
+.dropdown-item-desc { font-size: 11px; color: var(--text-muted); }
+.dropdown-item.selected .dropdown-item-label::after {
+  content: '\2713'; margin-left: auto; color: var(--accent); font-size: 14px;
+}
+
+/* Profile view */
+.profile-view { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+.profile-view.active { display: flex; }
+.profile-header-section {
+  padding: 24px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 16px;
+}
+.profile-avatar {
+  width: 56px; height: 56px; border-radius: 12px; background: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; font-weight: 600; color: #fff;
+}
+.profile-info h2 { font-size: 18px; font-weight: 600; }
+.profile-info p { font-size: 13px; color: var(--text-secondary); margin-top: 2px; }
+
+.profile-tabs {
+  display: flex; border-bottom: 1px solid var(--border); padding: 0 24px;
+}
+.profile-tab {
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s;
+}
+.profile-tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+.profile-tab:hover:not(.active) { color: var(--text-primary); }
+
+.profile-tab-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.profile-tab-pane { display: none; }
+.profile-tab-pane.active { display: block; }
+
+.data-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-bottom: 12px;
+}
+.data-card-header {
+  display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;
+}
+.data-card-title { font-size: 14px; font-weight: 600; }
+.data-card-badge {
+  font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 500;
+}
+.badge-active { background: rgba(152,195,121,0.15); color: var(--success); }
+.badge-suspended { background: rgba(224,108,117,0.15); color: var(--danger); }
+.badge-confirmed { background: rgba(91,155,213,0.15); color: var(--accent); }
+.badge-pending { background: rgba(229,192,123,0.15); color: var(--warning); }
+.data-row {
+  display: flex; padding: 4px 0; font-size: 13px;
+}
+.data-label { color: var(--text-muted); width: 120px; flex-shrink: 0; }
+.data-value { color: var(--text-primary); }
+.data-services { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+.service-tag {
+  font-size: 11px; padding: 2px 8px; background: var(--bg-pill);
+  border-radius: 10px; color: var(--text-secondary);
+}
+
+.doc-item {
+  display: flex; align-items: center; gap: 12px; padding: 10px 14px;
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 8px;
+}
+.doc-icon { font-size: 24px; }
+.doc-info { flex: 1; }
+.doc-name { font-size: 13px; font-weight: 500; }
+.doc-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-hover); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .sidebar { position: absolute; z-index: 10; height: 100%; }
+  .sidebar.collapsed { width: 0; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Sidebar -->
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
+      <div class="sidebar-header-right">
+        <button onclick="newChat()" title="New chat">&#9998;</button>
+      </div>
+    </div>
+
+    <div class="sidebar-pills">
+      <button class="pill active" id="pill-chats" onclick="switchSidebarTab('chats')">Chats</button>
+      <button class="pill" id="pill-profile" onclick="switchSidebarTab('profile')">My Profile</button>
+    </div>
+
+    <div class="sidebar-content" id="sidebar-chats">
+      <button class="new-chat-btn" onclick="newChat()">+ New chat</button>
+      <div class="chat-section-label">Recent</div>
+      <div id="chat-list"></div>
+    </div>
+
+    <div class="sidebar-content" id="sidebar-profile" style="display:none">
+      <div style="padding: 8px 10px; color: var(--text-muted); font-size: 12px;">
+        Your account details, bookings, and uploaded documents.
+      </div>
+    </div>
+
+    <div class="sidebar-footer" id="sidebar-footer">
+      <div class="sidebar-footer-avatar" id="footer-avatar">S</div>
+      <div class="sidebar-footer-name" id="footer-name">Dr. Sarah Mitchell</div>
+    </div>
+  </div>
+
+  <!-- Main -->
+  <div class="main">
+    <div class="main-header">
+      <button class="sidebar-toggle" onclick="toggleSidebar()" title="Toggle sidebar">&#9776;</button>
+      <span id="header-title" style="font-size:13px; color: var(--text-secondary);">New chat</span>
+    </div>
+
+    <!-- Welcome screen -->
+    <div class="welcome" id="welcome-screen">
+      <div class="welcome-icon">
+        <canvas id="ferrofluid" width="240" height="240"></canvas>
+      </div>
+      <h1>How can I help you today?</h1>
+    </div>
+
+    <!-- Chat view -->
+    <div class="chat-area" id="chat-area">
+      <div class="messages" id="messages"></div>
+    </div>
+
+    <!-- Profile view -->
+    <div class="profile-view" id="profile-view">
+      <div class="profile-header-section">
+        <div class="profile-avatar" id="profile-avatar">S</div>
+        <div class="profile-info">
+          <h2 id="profile-name">Dr. Sarah Mitchell</h2>
+          <p id="profile-org">Northside Medical Group</p>
+        </div>
+      </div>
+      <div class="profile-tabs">
+        <button class="profile-tab active" onclick="switchProfileTab('details', this)">Details</button>
+        <button class="profile-tab" onclick="switchProfileTab('bookings', this)">Bookings</button>
+        <button class="profile-tab" onclick="switchProfileTab('medical', this)">Medical Data</button>
+      </div>
+      <div class="profile-tab-content">
+        <div class="profile-tab-pane active" id="pane-details"></div>
+        <div class="profile-tab-pane" id="pane-bookings"></div>
+        <div class="profile-tab-pane" id="pane-medical"></div>
+      </div>
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area" id="input-area">
+      <div class="input-wrapper">
+        <textarea class="input-textarea" id="chat-input" rows="1"
+          placeholder="Ask anything about your account, services, or our policies..."
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+        <div class="input-footer">
+          <div class="input-footer-left"></div>
+          <div class="input-footer-right">
+            <div style="position:relative">
+              <button class="model-btn" id="model-selector" onclick="toggleModelDropdown()">
+                <span class="model-icon">&#9881;</span> <span id="model-label">Nova Pro</span>
+              </button>
+              <div class="dropdown" id="model-dropdown">
+                <button class="dropdown-item selected" onclick="setModel('nova-pro', 'Nova Pro')">
+                  <span class="dropdown-item-label">Nova Pro</span>
+                  <span class="dropdown-item-desc">Fast, cost-effective responses</span>
+                </button>
+                <button class="dropdown-item" onclick="setModel('claude-sonnet', 'Claude Sonnet')">
+                  <span class="dropdown-item-label">Claude Sonnet</span>
+                  <span class="dropdown-item-desc">Balanced quality and speed</span>
+                </button>
+                <button class="dropdown-item" onclick="setModel('claude-haiku', 'Claude Haiku')">
+                  <span class="dropdown-item-label">Claude Haiku</span>
+                  <span class="dropdown-item-desc">Fastest responses, lighter tasks</span>
+                </button>
+              </div>
+            </div>
+            <button class="send-btn" id="send-btn" onclick="sendMessage()" disabled>
+              <svg viewBox="0 0 24 24" fill="none" stroke="var(--bg-primary)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Ferrofluid animation
+(function() {
+  const canvas = document.getElementById('ferrofluid');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const NUM_POINTS = 8;
+  const BASE_R = 44;
+
+  const points = [];
+  for (let i = 0; i < NUM_POINTS; i++) {
+    points.push({
+      angle: (i / NUM_POINTS) * Math.PI * 2,
+      radius: BASE_R,
+      speed: 0.3 + Math.random() * 0.5,
+      amp: 6 + Math.random() * 10,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const s = t / 1000;
+
+    ctx.beginPath();
+    const pts = points.map(p => {
+      const r = BASE_R + Math.sin(s * p.speed + p.phase) * p.amp;
+      return { x: cx + Math.cos(p.angle + s * 0.15) * r, y: cy + Math.sin(p.angle + s * 0.15) * r };
+    });
+
+    // Smooth closed curve through points
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (let i = 0; i < pts.length; i++) {
+      const curr = pts[i];
+      const next = pts[(i + 1) % pts.length];
+      const next2 = pts[(i + 2) % pts.length];
+      const cpx = next.x + (next2.x - curr.x) * 0.15;
+      const cpy = next.y + (next2.y - curr.y) * 0.15;
+      const cpx2 = next.x - (next2.x - curr.x) * 0.15;
+      const cpy2 = next.y - (next2.y - curr.y) * 0.15;
+      ctx.quadraticCurveTo(
+        (curr.x + next.x) / 2 + (next.x - curr.x) * 0.1,
+        (curr.y + next.y) / 2 + (next.y - curr.y) * 0.1,
+        next.x, next.y
+      );
+    }
+    ctx.closePath();
+
+    // Gradient fill with metallic sheen
+    const grad = ctx.createRadialGradient(cx - 10, cy - 14, 8, cx, cy, BASE_R + 16);
+    grad.addColorStop(0, '#6ec6ff');
+    grad.addColorStop(0.3, '#3a8fd4');
+    grad.addColorStop(0.7, '#1a4a6e');
+    grad.addColorStop(1, '#0d2840');
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Highlight
+    ctx.beginPath();
+    ctx.arc(cx - 10, cy - 12, 14, 0, Math.PI * 2);
+    const hGrad = ctx.createRadialGradient(cx - 10, cy - 12, 0, cx - 10, cy - 12, 14);
+    hGrad.addColorStop(0, 'rgba(255,255,255,0.25)');
+    hGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hGrad;
+    ctx.fill();
+
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+})();
+
+// Resolve base path for CloudFront proxy
+const BASE = (() => {
+  const path = window.location.pathname;
+  const match = path.match(/^(\/app\/\d+\/)/);
+  return match ? match[1] : '/';
+})();
+function apiUrl(path) { return BASE + path.replace(/^\//, ''); }
+
+const CURRENT_CUSTOMER = 'C-1001';
+
+const state = {
+  chats: {},
+  currentChatId: null,
+  model: 'nova-pro',
+  sidebarTab: 'chats',
+  view: 'welcome',
+};
+
+function generateId() { return 'chat-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7); }
+function generateSessionId() { return crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16); }); }
+
+// Sidebar
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('collapsed');
+}
+
+function switchSidebarTab(tab) {
+  state.sidebarTab = tab;
+  document.getElementById('pill-chats').classList.toggle('active', tab === 'chats');
+  document.getElementById('pill-profile').classList.toggle('active', tab === 'profile');
+  document.getElementById('sidebar-chats').style.display = tab === 'chats' ? '' : 'none';
+  document.getElementById('sidebar-profile').style.display = tab === 'profile' ? '' : 'none';
+
+  if (tab === 'profile') {
+    showView('profile');
+    loadProfile();
+  } else {
+    showView(state.currentChatId ? 'chat' : 'welcome');
+  }
+}
+
+function showView(view) {
+  state.view = view;
+  document.getElementById('welcome-screen').style.display = view === 'welcome' ? 'flex' : 'none';
+  document.getElementById('chat-area').classList.toggle('active', view === 'chat');
+  document.getElementById('profile-view').classList.toggle('active', view === 'profile');
+  document.getElementById('input-area').style.display = view === 'profile' ? 'none' : '';
+}
+
+// Chat management
+function newChat() {
+  state.currentChatId = null;
+  showView('welcome');
+  document.getElementById('header-title').textContent = 'New chat';
+  document.getElementById('messages').innerHTML = '';
+  document.getElementById('chat-input').value = '';
+  document.getElementById('chat-input').focus();
+  updateChatList();
+  if (state.sidebarTab === 'profile') {
+    switchSidebarTab('chats');
+  }
+}
+
+function createChat(firstMessage) {
+  const id = generateId();
+  state.chats[id] = {
+    id,
+    sessionId: generateSessionId(),
+    title: firstMessage.slice(0, 40) + (firstMessage.length > 40 ? '...' : ''),
+    messages: [],
+    created: Date.now(),
+  };
+  state.currentChatId = id;
+  updateChatList();
+  return id;
+}
+
+function openChat(id) {
+  state.currentChatId = id;
+  const chat = state.chats[id];
+  if (!chat) return;
+  document.getElementById('header-title').textContent = chat.title;
+  showView('chat');
+  renderMessages(chat.messages);
+  updateChatList();
+  if (state.sidebarTab === 'profile') {
+    switchSidebarTab('chats');
+  }
+}
+
+function updateChatList() {
+  const list = document.getElementById('chat-list');
+  const sorted = Object.values(state.chats).sort((a, b) => b.created - a.created);
+  list.innerHTML = sorted.map(c => `
+    <button class="chat-item ${c.id === state.currentChatId ? 'active' : ''}" onclick="openChat('${c.id}')">
+      <span class="chat-item-text">${escapeHtml(c.title)}</span>
+    </button>
+  `).join('');
+}
+
+function renderMessages(messages) {
+  const el = document.getElementById('messages');
+  el.innerHTML = messages.map(m => `
+    <div class="message">
+      <div class="message-role ${m.role}">
+        <span class="role-icon">${m.role === 'user' ? '&#128100;' : '&#129302;'}</span>
+        ${m.role === 'user' ? 'You' : 'HealthCare Agent'}
+      </div>
+      <div class="message-content">${formatContent(m.content)}</div>
+    </div>
+  `).join('');
+  scrollToBottom();
+}
+
+function scrollToBottom() {
+  const area = document.getElementById('chat-area');
+  area.scrollTop = area.scrollHeight;
+}
+
+function formatContent(text) {
+  let html = escapeHtml(text);
+  html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
+  html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+  html = html.replace(/\n- /g, '\n&#8226; ');
+  return html;
+}
+
+function escapeHtml(text) {
+  const d = document.createElement('div');
+  d.textContent = text;
+  return d.innerHTML;
+}
+
+// Model
+function toggleModelDropdown() {
+  const dd = document.getElementById('model-dropdown');
+  dd.classList.toggle('open');
+  if (dd.classList.contains('open')) {
+    setTimeout(() => document.addEventListener('click', closeModelDropdown, { once: true }), 0);
+  }
+}
+function closeModelDropdown() {
+  document.getElementById('model-dropdown').classList.remove('open');
+}
+function setModel(model, label) {
+  state.model = model;
+  document.getElementById('model-label').textContent = label;
+  document.querySelectorAll('#model-dropdown .dropdown-item').forEach(el => {
+    el.classList.toggle('selected', el.querySelector('.dropdown-item-label').textContent === label);
+  });
+  document.getElementById('model-dropdown').classList.remove('open');
+}
+
+// Input
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+}
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+  document.getElementById('send-btn').disabled = !el.value.trim();
+}
+
+// Send message
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!state.currentChatId) {
+    createChat(text);
+    showView('chat');
+    document.getElementById('header-title').textContent = state.chats[state.currentChatId].title;
+  }
+
+  const chat = state.chats[state.currentChatId];
+  chat.messages.push({ role: 'user', content: text });
+  renderMessages(chat.messages);
+
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('send-btn').disabled = true;
+
+  const msgEl = document.getElementById('messages');
+  const typingDiv = document.createElement('div');
+  typingDiv.className = 'message';
+  typingDiv.innerHTML = `
+    <div class="message-role assistant">
+      <span class="role-icon">&#129302;</span> HealthCare Agent
+    </div>
+    <div class="message-content"><div class="typing-indicator"><span></span><span></span><span></span></div></div>
+  `;
+  msgEl.appendChild(typingDiv);
+  scrollToBottom();
+
+  try {
+    const response = await fetch(apiUrl('api/chat'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        prompt: text,
+        session_id: chat.sessionId,
+        model: state.model,
+      }),
+    });
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split('\n');
+      buffer = lines.pop();
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        try {
+          const data = JSON.parse(line.slice(6));
+          if (data.error) {
+            fullText += '\nError: ' + data.error;
+          } else if (data.text) {
+            fullText += data.text;
+          }
+        } catch {}
+      }
+
+      const contentEl = typingDiv.querySelector('.message-content');
+      contentEl.innerHTML = formatContent(fullText) || '<div class="typing-indicator"><span></span><span></span><span></span></div>';
+      scrollToBottom();
+    }
+
+    if (!fullText) fullText = 'No response received.';
+
+    chat.messages.push({ role: 'assistant', content: fullText });
+    renderMessages(chat.messages);
+
+  } catch (err) {
+    const errText = 'Connection error: ' + err.message;
+    chat.messages.push({ role: 'assistant', content: errText });
+    renderMessages(chat.messages);
+  }
+}
+
+// Profile - single customer (the logged-in user)
+let profileLoaded = false;
+async function loadProfile() {
+  if (profileLoaded) return;
+  profileLoaded = true;
+
+  try {
+    const [custRes, bookRes, docsRes] = await Promise.all([
+      fetch(apiUrl(`api/customers/${CURRENT_CUSTOMER}`)),
+      fetch(apiUrl(`api/bookings?customer_id=${CURRENT_CUSTOMER}`)),
+      fetch(apiUrl(`api/medical-docs?customer_id=${CURRENT_CUSTOMER}`)),
+    ]);
+    const customer = await custRes.json();
+    const bookings = await bookRes.json();
+    const docs = await docsRes.json();
+
+    const initial = customer.name ? customer.name.replace(/^(Dr\.\s*|Mr\.\s*|Ms\.\s*|Mrs\.\s*)/, '')[0] : '?';
+    document.getElementById('profile-avatar').textContent = initial;
+    document.getElementById('profile-name').textContent = customer.name || 'Unknown';
+    document.getElementById('profile-org').textContent = `${customer.org} · ${customer.plan}`;
+    document.getElementById('footer-avatar').textContent = initial;
+    document.getElementById('footer-name').textContent = customer.name || 'Unknown';
+
+    const badgeClass = customer.status === 'active' ? 'badge-active' : 'badge-suspended';
+    document.getElementById('pane-details').innerHTML = `
+      <div class="data-card">
+        <div class="data-card-header">
+          <span class="data-card-title">Account Information</span>
+          <span class="data-card-badge ${badgeClass}">${customer.status}</span>
+        </div>
+        <div class="data-row"><span class="data-label">Customer ID</span><span class="data-value">${customer.id}</span></div>
+        <div class="data-row"><span class="data-label">Email</span><span class="data-value">${customer.email}</span></div>
+        <div class="data-row"><span class="data-label">Phone</span><span class="data-value">${customer.phone}</span></div>
+        <div class="data-row"><span class="data-label">Organisation</span><span class="data-value">${customer.org}</span></div>
+        <div class="data-row"><span class="data-label">Type</span><span class="data-value">${customer.org_type}</span></div>
+        <div class="data-row"><span class="data-label">Plan</span><span class="data-value">${customer.plan}</span></div>
+      </div>
+      <div class="data-card">
+        <div class="data-card-header"><span class="data-card-title">Active Services</span></div>
+        <div class="data-services">
+          ${(customer.services || []).map(s => `<span class="service-tag">${s.replace(/_/g, ' ')}</span>`).join('')}
+        </div>
+      </div>
+    `;
+
+    if (bookings.length) {
+      document.getElementById('pane-bookings').innerHTML = bookings.map(b => `
+        <div class="data-card">
+          <div class="data-card-header">
+            <span class="data-card-title">${escapeHtml(b.type)}</span>
+            <span class="data-card-badge badge-${b.status}">${b.status}</span>
+          </div>
+          <div class="data-row"><span class="data-label">Booking ID</span><span class="data-value">${b.id}</span></div>
+          <div class="data-row"><span class="data-label">Date</span><span class="data-value">${b.date}</span></div>
+          <div class="data-row"><span class="data-label">Provider</span><span class="data-value">${b.provider}</span></div>
+        </div>
+      `).join('');
+    } else {
+      document.getElementById('pane-bookings').innerHTML = '<p style="color: var(--text-muted); font-size: 13px; padding: 20px 0;">No upcoming bookings.</p>';
+    }
+
+    if (docs.length) {
+      document.getElementById('pane-medical').innerHTML = docs.map(d => `
+        <div class="doc-item">
+          <span class="doc-icon">&#128196;</span>
+          <div class="doc-info">
+            <div class="doc-name">${escapeHtml(d.name)}</div>
+            <div class="doc-meta">${d.type} · ${d.size} · Uploaded ${d.uploaded}</div>
+          </div>
+        </div>
+      `).join('');
+    } else {
+      document.getElementById('pane-medical').innerHTML = '<p style="color: var(--text-muted); font-size: 13px; padding: 20px 0;">No documents uploaded.</p>';
+    }
+
+  } catch (err) {
+    document.getElementById('pane-details').innerHTML = `<p style="color: var(--danger);">Failed to load profile: ${err.message}</p>`;
+  }
+}
+
+function switchProfileTab(tab, btn) {
+  document.querySelectorAll('.profile-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.profile-tab-pane').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('pane-' + tab).classList.add('active');
+}
+
+// Init
+document.getElementById('chat-input').addEventListener('input', function() {
+  document.getElementById('send-btn').disabled = !this.value.trim();
+});
+document.getElementById('chat-input').focus();
+</script>
+</body>
+</html>
