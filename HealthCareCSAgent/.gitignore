@@ -1,0 +1,4 @@
+agentcore/aws-targets.json
+agentcore/.cli/deployed-state.json
+ui/.env
+.env

@@ -3,6 +3,9 @@ import boto3
 import json
 import uuid
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 st.set_page_config(
     page_title="HealthCare CS Agent",
@@ -11,10 +14,7 @@ st.set_page_config(
 )
 
 REGION = os.getenv("AWS_REGION", "us-west-2")
-RUNTIME_ARN = os.getenv(
-    "AGENT_RUNTIME_ARN",
-    "arn:aws:bedrock-agentcore:us-west-2:825729848461:runtime/HealthCareCSAgent_HealthCareCSAgent-QJDnQRCSv7",
-)
+RUNTIME_ARN = os.environ["AGENT_RUNTIME_ARN"]
 
 
 @st.cache_resource
@@ -34,51 +34,24 @@ def invoke_agent(client, prompt: str, session_id: str) -> str:
     if stream is None:
         return "No response from agent."
 
-    chunks = []
-    if hasattr(stream, "iter_lines"):
-        for line in stream.iter_lines():
-            if line:
-                decoded = line.decode() if isinstance(line, bytes) else line
-                chunks.append(decoded)
-    else:
-        content = stream.read()
-        decoded = content.decode() if isinstance(content, bytes) else content
-        chunks.append(decoded)
-
-    raw = "".join(chunks)
+    content = stream.read()
+    raw = content.decode() if isinstance(content, bytes) else content
 
     text_parts = []
     for line in raw.split("\n"):
         line = line.strip()
-        if not line:
+        if not line or line.startswith("event:") or line.startswith(":"):
             continue
-        if line.startswith("event:") or line.startswith(":"):
+        data_str = line.removeprefix("data:").strip()
+        if not data_str:
             continue
-        if line.startswith("data:"):
-            data_str = line[5:].strip()
-            if not data_str:
-                continue
-            try:
-                data = json.loads(data_str)
-                event = data.get("event", {})
-                cbd = event.get("contentBlockDelta", {})
-                delta = cbd.get("delta", {})
-                text = delta.get("text")
-                if text:
-                    text_parts.append(text)
-            except json.JSONDecodeError:
-                text_parts.append(data_str)
-        else:
-            try:
-                data = json.loads(line)
-                event = data.get("event", {})
-                cbd = event.get("contentBlockDelta", {})
-                delta = cbd.get("delta", {})
-                text = delta.get("text")
-                if text:
-                    text_parts.append(text)
-            except json.JSONDecodeError:
-                pass
+        try:
+            data = json.loads(data_str)
+            text = data.get("event", {}).get("contentBlockDelta", {}).get("delta", {}).get("text")
+            if text:
+                text_parts.append(text)
+        except json.JSONDecodeError:
+            pass
 
     return "".join(text_parts) if text_parts else raw
 
