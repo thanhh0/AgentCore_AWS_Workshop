@@ -125,6 +125,25 @@ export class AgentCoreStack extends Stack {
     }
     this.application = new AgentCoreApplication(this, 'Application', appProps as any);
 
+    // Grant DynamoDB access for ticket triage store
+    for (const env of this.application.environments.values()) {
+      env.runtime.role.addToPrincipalPolicy(
+        new iam.PolicyStatement({
+          actions: [
+            'dynamodb:PutItem',
+            'dynamodb:GetItem',
+            'dynamodb:Scan',
+            'dynamodb:UpdateItem',
+            'dynamodb:CreateTable',
+            'dynamodb:DescribeTable',
+          ],
+          resources: [
+            `arn:aws:dynamodb:${this.region}:${this.account}:table/HealthCareCS-Tickets`,
+          ],
+        })
+      );
+    }
+
     // Create AgentCoreMcp if there are gateways configured
     if (mcpSpec?.agentCoreGateways && mcpSpec.agentCoreGateways.length > 0) {
       new AgentCoreMcp(this, 'Mcp', {

@@ -11,6 +11,7 @@ from tools.customer_search import search_customers, get_customer_details
 from tools.knowledge_base import search_knowledge_base, get_knowledge_article
 from tools.escalation import escalate_to_human, list_tickets
 from tools.preferences import save_preference, get_preferences
+from tools.triage import triage_and_create_ticket, get_ticket_queue, update_ticket_status
 from hooks.guardrails import GuardrailHook
 
 app = BedrockAgentCoreApp()
@@ -66,6 +67,18 @@ KNOWLEDGE BASE:
 MEMORY:
 - When you learn a customer preference (contact method, language, format, etc.), save it
 - At the start of a conversation, check if you have stored preferences for the customer
+
+TICKET TRIAGE:
+When you receive a request to triage a ticket or when a customer submits a support request:
+1. Identify the customer if possible (search by name, email, or org)
+2. Search the knowledge base for relevant context
+3. Classify the ticket by category, priority, and team using the triage tool rules
+4. Create the ticket using triage_and_create_ticket
+5. If escalation rules apply (emergency, cancellation, child-related), set escalate=True
+6. Report the triage result to the user with ticket ID, priority, and assigned team
+
+When asked to show the ticket queue, use get_ticket_queue with appropriate filters.
+When asked to update a ticket, use update_ticket_status.
 """
 
 
@@ -78,6 +91,9 @@ tools = [
     list_tickets,
     save_preference,
     get_preferences,
+    triage_and_create_ticket,
+    get_ticket_queue,
+    update_ticket_status,
 ]
 
 
