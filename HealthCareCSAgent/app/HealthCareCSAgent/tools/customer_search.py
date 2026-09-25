@@ -5,13 +5,14 @@ from typing import Optional
 MOCK_CUSTOMERS = {
     "C-1001": {
         "id": "C-1001",
-        "name": "Dr. Sarah Mitchell",
+        "name": "Sarah Mitchell",
         "email": "s.mitchell@northsidemedical.com.au",
         "phone": "+61 3 9555 1234",
         "org": "Northside Medical Group",
         "org_type": "telehealth_provider",
         "plan": "Enterprise Telehealth",
         "status": "active",
+        "role": "Practice Manager",
         "services": ["video_consult", "e_prescriptions", "patient_portal"],
         "notes": "Key account — 12 clinicians onboarded. Prefers email contact.",
     },

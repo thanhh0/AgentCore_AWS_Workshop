@@ -4,15 +4,16 @@ import uuid
 import re
 import boto3
 from pathlib import Path
+from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.responses import HTMLResponse, StreamingResponse, FileResponse
 from fastapi.staticfiles import StaticFiles
 
+load_dotenv(Path(__file__).parent.parent / ".env")
+
 REGION = os.getenv("AWS_REGION", "us-west-2")
-RUNTIME_ARN = os.getenv(
-    "AGENT_RUNTIME_ARN",
-    "arn:aws:bedrock-agentcore:us-west-2:825729848461:runtime/HealthCareCSAgent_HealthCareCSAgent-QJDnQRCSv7",
-)
+RUNTIME_ARN = os.environ["AGENT_RUNTIME_ARN"]
+TICKET_TABLE = os.getenv("TICKET_TABLE", "HealthCareCS-Tickets")
 
 app = FastAPI()
 
@@ -20,13 +21,15 @@ STATIC_DIR = Path(__file__).parent / "static"
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
 
 client = boto3.client("bedrock-agentcore", region_name=REGION)
+dynamodb = boto3.resource("dynamodb", region_name=REGION)
+ticket_table = dynamodb.Table(TICKET_TABLE)
 
 
 MOCK_CUSTOMERS = {
     "C-1001": {
-        "id": "C-1001", "name": "Dr. Sarah Mitchell", "email": "s.mitchell@northsidemedical.com.au",
+        "id": "C-1001", "name": "Sarah Mitchell", "email": "s.mitchell@northsidemedical.com.au",
         "phone": "+61 3 9555 1234", "org": "Northside Medical Group", "org_type": "telehealth_provider",
-        "plan": "Enterprise Telehealth", "status": "active",
+        "plan": "Enterprise Telehealth", "status": "active", "role": "Practice Manager",
         "services": ["video_consult", "e_prescriptions", "patient_portal"],
     },
     "C-1002": {
@@ -74,7 +77,10 @@ MOCK_MEDICAL_DOCS = [
 @app.get("/", response_class=HTMLResponse)
 async def index():
     html_path = STATIC_DIR / "index.html"
-    return HTMLResponse(content=html_path.read_text())
+    return HTMLResponse(
+        content=html_path.read_text(),
+        headers={"Cache-Control": "no-cache, no-store, must-revalidate"},
+    )
 
 
 @app.get("/api/customers")
@@ -120,12 +126,11 @@ def _parse_sse_stream(raw: str) -> str:
             delta = cbd.get("delta", {})
             text = delta.get("text")
             if text:
-                cleaned = re.sub(r"</?thinking>", "", text)
-                if cleaned:
-                    text_parts.append(cleaned)
+                text_parts.append(text)
         except json.JSONDecodeError:
             pass
-    return "".join(text_parts)
+    joined = "".join(text_parts)
+    return joined.strip()
 
 
 ONBOARDING_FEATURES = {
@@ -234,26 +239,101 @@ async def complete_onboarding(request: Request):
         stream = response.get("response")
         full_text = ""
         if stream:
-            if hasattr(stream, "iter_lines"):
-                for line in stream.iter_lines():
-                    if line:
-                        decoded = line.decode() if isinstance(line, bytes) else line
-                        full_text += _parse_sse_stream(decoded)
-            else:
-                content = stream.read()
-                decoded = content.decode() if isinstance(content, bytes) else content
-                full_text = _parse_sse_stream(decoded)
+            content = stream.read()
+            decoded = content.decode() if isinstance(content, bytes) else content
+            full_text = _parse_sse_stream(decoded)
 
         return {"status": "complete", "message": full_text or "Onboarding complete! Your preferences have been saved."}
     except Exception as e:
         return {"status": "complete", "message": f"Onboarding complete! (Note: preferences will sync on next interaction. {e})"}
 
 
+@app.get("/api/tickets")
+async def list_tickets(status: str = None, priority: str = None, category: str = None):
+    try:
+        response = ticket_table.scan(Limit=100)
+        tickets = response.get("Items", [])
+        if status and status != "all":
+            tickets = [t for t in tickets if t.get("status") == status]
+        if priority and priority != "all":
+            tickets = [t for t in tickets if t.get("priority") == priority]
+        if category and category != "all":
+            tickets = [t for t in tickets if t.get("category") == category]
+        tickets.sort(key=lambda t: t.get("created_at", ""), reverse=True)
+        for t in tickets:
+            for k, v in t.items():
+                if hasattr(v, "as_integer_ratio"):
+                    t[k] = int(v) if float(v).is_integer() else float(v)
+        return tickets
+    except Exception as e:
+        return []
+
+
+@app.post("/api/tickets/triage")
+async def triage_ticket(request: Request):
+    body = await request.json()
+    sender_name = body.get("sender_name", "Unknown")
+    sender_email = body.get("sender_email", "")
+    sender_org = body.get("sender_org", "")
+    customer_id = body.get("customer_id", "")
+    subject = body.get("subject", "")
+    description = body.get("body", "")
+
+    prompt = (
+        f"Triage this incoming support ticket. Classify it and create a ticket.\n\n"
+        f"FROM: {sender_name} ({sender_email or 'no email'})\n"
+        f"ORG: {sender_org or 'Unknown'}\n"
+        f"CUSTOMER ID: {customer_id or 'not provided'}\n"
+        f"SUBJECT: {subject}\n\n"
+        f"BODY:\n{description}\n\n"
+        f"Instructions: Search for this customer if an ID or org is provided. "
+        f"Check the knowledge base for relevant context. "
+        f"Then classify and create the ticket using triage_and_create_ticket. "
+        f"Report the triage result."
+    )
+
+    session_id = str(uuid.uuid4())
+    try:
+        response = client.invoke_agent_runtime(
+            agentRuntimeArn=RUNTIME_ARN,
+            qualifier="DEFAULT",
+            payload=json.dumps({"prompt": prompt}).encode(),
+            runtimeSessionId=session_id,
+        )
+        stream = response.get("response")
+        full_text = ""
+        if stream:
+            content = stream.read()
+            decoded = content.decode() if isinstance(content, bytes) else content
+            full_text = _parse_sse_stream(decoded)
+
+        ticket_match = re.search(r"TKT-[A-Z0-9]{8}", full_text)
+        return {
+            "status": "success",
+            "ticket_id": ticket_match.group() if ticket_match else None,
+            "message": full_text or "Ticket triaged successfully.",
+        }
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
+
+
 @app.post("/api/chat")
 async def chat(request: Request):
     body = await request.json()
-    prompt = body.get("prompt", "")
+    raw_prompt = body.get("prompt", "")
     session_id = body.get("session_id", str(uuid.uuid4()))
+    customer_id = body.get("customer_id", "C-1001")
+
+    customer = MOCK_CUSTOMERS.get(customer_id, {})
+    role = customer.get('role', 'Customer')
+    context_prefix = (
+        f"[CONTEXT: The logged-in user is {customer.get('name', 'Unknown')} "
+        f"({role} at {customer.get('org', 'Unknown')}). "
+        f"Customer ID: {customer_id}, Plan: {customer.get('plan', 'Unknown')}, "
+        f"Status: {customer.get('status', 'unknown')}. "
+        f"When they say 'my' or 'me', they mean this customer.]\n\n"
+    )
+    prompt = context_prefix + raw_prompt
 
     async def generate():
         try:
@@ -268,19 +348,11 @@ async def chat(request: Request):
                 yield f"data: {json.dumps({'text': 'No response from agent.'})}\n\n"
                 return
 
-            if hasattr(stream, "iter_lines"):
-                for line in stream.iter_lines():
-                    if line:
-                        decoded = line.decode() if isinstance(line, bytes) else line
-                        text = _parse_sse_stream(decoded)
-                        if text:
-                            yield f"data: {json.dumps({'text': text})}\n\n"
-            else:
-                content = stream.read()
-                decoded = content.decode() if isinstance(content, bytes) else content
-                text = _parse_sse_stream(decoded)
-                if text:
-                    yield f"data: {json.dumps({'text': text})}\n\n"
+            content = stream.read()
+            decoded = content.decode() if isinstance(content, bytes) else content
+            text = _parse_sse_stream(decoded)
+            if text:
+                yield f"data: {json.dumps({'text': text})}\n\n"
 
             yield f"data: {json.dumps({'done': True})}\n\n"
         except Exception as e:

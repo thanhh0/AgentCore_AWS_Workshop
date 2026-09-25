@@ -174,6 +174,44 @@ body {
 }
 .message-content ul, .message-content ol { padding-left: 20px; margin: 8px 0; }
 
+/* Thinking accordion */
+.thinking-block {
+  margin: 10px 0; border-radius: 8px; border: 1px solid rgba(152,120,220,0.2);
+  background: rgba(152,120,220,0.06); overflow: hidden;
+}
+.thinking-block summary {
+  padding: 8px 12px; cursor: pointer; font-size: 12px; font-weight: 500;
+  color: rgba(180,160,230,0.85); display: flex; align-items: center; gap: 6px;
+  list-style: none; user-select: none;
+}
+.thinking-block summary::-webkit-details-marker { display: none; }
+.thinking-block summary::before {
+  content: '\25B6'; font-size: 9px; transition: transform 0.15s; display: inline-block;
+}
+.thinking-block[open] summary::before { transform: rotate(90deg); }
+.thinking-block summary .thinking-icon { font-size: 13px; }
+.thinking-block summary .thinking-label { flex: 1; }
+.thinking-block-content {
+  padding: 10px 14px; font-size: 12px; line-height: 1.6;
+  color: var(--text-secondary); border-top: 1px solid rgba(152,120,220,0.15);
+  white-space: pre-wrap; word-break: break-word;
+}
+
+/* Ticket card in chat */
+.ticket-inline-card {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 14px; margin: 4px 2px; border-radius: 8px;
+  background: rgba(91,155,213,0.1); border: 1px solid rgba(91,155,213,0.25);
+  cursor: pointer; transition: all 0.15s; text-decoration: none;
+  white-space: nowrap; vertical-align: middle;
+}
+.ticket-inline-card:hover { background: rgba(91,155,213,0.2); border-color: rgba(91,155,213,0.4); }
+.ticket-inline-card .ticket-inline-icon { font-size: 13px; }
+.ticket-inline-card .ticket-inline-id {
+  font-size: 12px; font-weight: 600; color: var(--accent); letter-spacing: 0.3px;
+}
+.ticket-inline-card .ticket-inline-arrow { font-size: 11px; color: var(--text-muted); }
+
 /* Confirmation action buttons */
 .action-buttons {
   display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap;
@@ -440,6 +478,107 @@ body {
 .ob-summary-val { color: var(--text-primary); }
 .ob-saving { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
 
+/* Triage view */
+.triage-view { display: none; flex-direction: column; height: 100%; overflow-y: auto; }
+.triage-view.active { display: flex; }
+.triage-header-section {
+  padding: 20px 24px 0; display: flex; align-items: center; justify-content: space-between;
+}
+.triage-header-section h2 { font-size: 18px; font-weight: 600; }
+.triage-tabs {
+  display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; margin-top: 8px;
+}
+.triage-tab {
+  padding: 10px 16px; font-size: 13px; font-weight: 500;
+  color: var(--text-secondary); background: none; border: none;
+  border-bottom: 2px solid transparent; cursor: pointer; transition: all 0.15s;
+}
+.triage-tab.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+.triage-tab:hover:not(.active) { color: var(--text-primary); }
+.triage-content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.triage-tab-pane { display: none; }
+.triage-tab-pane.active { display: block; }
+
+.triage-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 20px;
+}
+.triage-stat {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; text-align: center;
+}
+.triage-stat-value { font-size: 24px; font-weight: 700; color: var(--text-primary); }
+.triage-stat-label { font-size: 11px; color: var(--text-muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.triage-filters {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; align-items: center;
+}
+.triage-filter {
+  padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 500;
+  background: var(--bg-pill); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; font-family: inherit;
+}
+.triage-filter:focus { outline: none; border-color: var(--accent); }
+
+.ticket-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  cursor: pointer; transition: border-color 0.15s;
+}
+.ticket-card:hover { border-color: var(--text-muted); }
+.ticket-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.ticket-card-id { font-size: 12px; font-weight: 600; color: var(--accent); }
+.ticket-card-subject { font-size: 14px; font-weight: 500; flex: 1; }
+.ticket-card-badges { display: flex; gap: 6px; }
+.ticket-badge {
+  font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; text-transform: uppercase;
+}
+.badge-critical { background: rgba(224,108,117,0.15); color: var(--danger); }
+.badge-high { background: rgba(229,168,90,0.15); color: #e5a85a; }
+.badge-medium { background: rgba(229,192,123,0.15); color: var(--warning); }
+.badge-low { background: rgba(152,195,121,0.15); color: var(--success); }
+.badge-open { background: rgba(91,155,213,0.15); color: var(--accent); }
+.badge-in_progress { background: rgba(229,192,123,0.15); color: var(--warning); }
+.badge-resolved { background: rgba(152,195,121,0.15); color: var(--success); }
+.badge-closed { background: rgba(138,138,138,0.15); color: var(--text-secondary); }
+.badge-escalated { background: rgba(224,108,117,0.2); color: var(--danger); }
+.ticket-card-meta {
+  display: flex; gap: 16px; font-size: 12px; color: var(--text-muted);
+}
+.ticket-card-details {
+  display: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);
+}
+.ticket-card.expanded .ticket-card-details { display: block; }
+
+.triage-form { max-width: 600px; }
+.triage-form-group { margin-bottom: 16px; }
+.triage-form-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; display: block; color: var(--text-primary); }
+.triage-form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.triage-form input, .triage-form textarea {
+  width: 100%; padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border);
+  border-radius: 6px; color: var(--text-primary); font-size: 13px; font-family: inherit;
+}
+.triage-form input::placeholder, .triage-form textarea::placeholder { color: var(--text-muted); }
+.triage-form input:focus, .triage-form textarea:focus { outline: none; border-color: var(--accent); }
+.triage-form textarea { min-height: 120px; resize: vertical; }
+.triage-submit {
+  padding: 10px 24px; border-radius: 8px; font-size: 13px; font-weight: 600;
+  background: var(--accent); color: #fff; border: none; cursor: pointer;
+  font-family: inherit; transition: background 0.15s;
+}
+.triage-submit:hover { background: var(--accent-hover); }
+.triage-submit:disabled { opacity: 0.5; cursor: default; }
+.triage-result {
+  margin-top: 16px; padding: 14px; border-radius: var(--radius);
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  font-size: 13px; line-height: 1.6; display: none;
+}
+.triage-result.visible { display: block; }
+.triage-empty {
+  text-align: center; padding: 40px 20px; color: var(--text-muted); font-size: 13px;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -466,13 +605,20 @@ body {
 
     <div class="sidebar-pills">
       <button class="pill active" id="pill-chats" onclick="switchSidebarTab('chats')">Chats</button>
-      <button class="pill" id="pill-profile" onclick="switchSidebarTab('profile')">My Profile</button>
+      <button class="pill" id="pill-triage" onclick="switchSidebarTab('triage')">Triage</button>
+      <button class="pill" id="pill-profile" onclick="switchSidebarTab('profile')">Profile</button>
     </div>
 
     <div class="sidebar-content" id="sidebar-chats">
       <button class="new-chat-btn" onclick="newChat()">+ New chat</button>
       <div class="chat-section-label">Recent</div>
       <div id="chat-list"></div>
+    </div>
+
+    <div class="sidebar-content" id="sidebar-triage" style="display:none">
+      <div style="padding: 8px 10px; color: var(--text-muted); font-size: 12px;">
+        Submit and track support tickets. The agent triages automatically.
+      </div>
     </div>
 
     <div class="sidebar-content" id="sidebar-profile" style="display:none">
@@ -483,7 +629,7 @@ body {
 
     <div class="sidebar-footer" id="sidebar-footer">
       <div class="sidebar-footer-avatar" id="footer-avatar">S</div>
-      <div class="sidebar-footer-name" id="footer-name">Dr. Sarah Mitchell</div>
+      <div class="sidebar-footer-name" id="footer-name">Sarah Mitchell</div>
     </div>
   </div>
 
@@ -512,7 +658,7 @@ body {
       <div class="profile-header-section">
         <div class="profile-avatar" id="profile-avatar">S</div>
         <div class="profile-info">
-          <h2 id="profile-name">Dr. Sarah Mitchell</h2>
+          <h2 id="profile-name">Sarah Mitchell</h2>
           <p id="profile-org">Northside Medical Group</p>
         </div>
       </div>
@@ -525,6 +671,82 @@ body {
         <div class="profile-tab-pane active" id="pane-details"></div>
         <div class="profile-tab-pane" id="pane-bookings"></div>
         <div class="profile-tab-pane" id="pane-medical"></div>
+      </div>
+    </div>
+
+    <!-- Triage view -->
+    <div class="triage-view" id="triage-view">
+      <div class="triage-header-section">
+        <h2>Ticket Triage</h2>
+        <button class="ob-btn ob-btn-secondary" onclick="loadTickets()" style="font-size:12px; padding:6px 14px;">Refresh</button>
+      </div>
+      <div class="triage-tabs">
+        <button class="triage-tab active" onclick="switchTriageTab('queue', this)">Ticket Queue</button>
+        <button class="triage-tab" onclick="switchTriageTab('submit', this)">Submit Ticket</button>
+      </div>
+      <div class="triage-content">
+        <div class="triage-tab-pane active" id="triage-queue">
+          <div class="triage-stats" id="triage-stats"></div>
+          <div class="triage-filters">
+            <select class="triage-filter" id="filter-status" onchange="loadTickets()">
+              <option value="all">All Status</option>
+              <option value="open">Open</option>
+              <option value="in_progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+            <select class="triage-filter" id="filter-priority" onchange="loadTickets()">
+              <option value="all">All Priority</option>
+              <option value="critical">Critical</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+            <select class="triage-filter" id="filter-category" onchange="loadTickets()">
+              <option value="all">All Category</option>
+              <option value="billing">Billing</option>
+              <option value="clinical">Clinical</option>
+              <option value="technical">Technical</option>
+              <option value="compliance">Compliance</option>
+              <option value="account">Account</option>
+            </select>
+          </div>
+          <div id="ticket-list"></div>
+        </div>
+        <div class="triage-tab-pane" id="triage-submit">
+          <div class="triage-form">
+            <div class="triage-form-row">
+              <div class="triage-form-group">
+                <label class="triage-form-label">Your name</label>
+                <input type="text" id="tf-name" placeholder="e.g. Karen Liu">
+              </div>
+              <div class="triage-form-group">
+                <label class="triage-form-label">Email</label>
+                <input type="email" id="tf-email" placeholder="e.g. karen.liu@pilbaramining.com.au">
+              </div>
+            </div>
+            <div class="triage-form-row">
+              <div class="triage-form-group">
+                <label class="triage-form-label">Organisation</label>
+                <input type="text" id="tf-org" placeholder="e.g. Pilbara Mining Corp">
+              </div>
+              <div class="triage-form-group">
+                <label class="triage-form-label">Customer ID (if known)</label>
+                <input type="text" id="tf-custid" placeholder="e.g. C-1003">
+              </div>
+            </div>
+            <div class="triage-form-group">
+              <label class="triage-form-label">Subject</label>
+              <input type="text" id="tf-subject" placeholder="e.g. Drug testing results delayed for FIFO crew">
+            </div>
+            <div class="triage-form-group">
+              <label class="triage-form-label">Description</label>
+              <textarea id="tf-body" placeholder="Describe your issue in detail..."></textarea>
+            </div>
+            <button class="triage-submit" id="tf-submit-btn" onclick="submitTicket()">Submit &amp; Triage</button>
+            <div class="triage-result" id="tf-result"></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -757,13 +979,18 @@ function toggleSidebar() {
 function switchSidebarTab(tab) {
   state.sidebarTab = tab;
   document.getElementById('pill-chats').classList.toggle('active', tab === 'chats');
+  document.getElementById('pill-triage').classList.toggle('active', tab === 'triage');
   document.getElementById('pill-profile').classList.toggle('active', tab === 'profile');
   document.getElementById('sidebar-chats').style.display = tab === 'chats' ? '' : 'none';
+  document.getElementById('sidebar-triage').style.display = tab === 'triage' ? '' : 'none';
   document.getElementById('sidebar-profile').style.display = tab === 'profile' ? '' : 'none';
 
   if (tab === 'profile') {
     showView('profile');
     loadProfile();
+  } else if (tab === 'triage') {
+    showView('triage');
+    loadTickets();
   } else {
     showView(state.currentChatId ? 'chat' : 'welcome');
   }
@@ -774,7 +1001,8 @@ function showView(view) {
   document.getElementById('welcome-screen').style.display = view === 'welcome' ? 'flex' : 'none';
   document.getElementById('chat-area').classList.toggle('active', view === 'chat');
   document.getElementById('profile-view').classList.toggle('active', view === 'profile');
-  document.getElementById('input-area').style.display = view === 'profile' ? 'none' : '';
+  document.getElementById('triage-view').classList.toggle('active', view === 'triage');
+  document.getElementById('input-area').style.display = (view === 'profile' || view === 'triage') ? 'none' : '';
 }
 
 // Chat management
@@ -830,15 +1058,21 @@ function updateChatList() {
 
 function renderMessages(messages) {
   const el = document.getElementById('messages');
-  el.innerHTML = messages.map(m => `
-    <div class="message">
-      <div class="message-role ${m.role}">
-        <span class="role-icon">${m.role === 'user' ? '&#128100;' : '&#129302;'}</span>
-        ${m.role === 'user' ? 'You' : 'HealthCare Agent'}
+  const lastIdx = messages.length - 1;
+  el.innerHTML = messages.map((m, i) => {
+    const isLastAssistant = m.role === 'assistant' && i === lastIdx;
+    const showButtons = isLastAssistant && detectConfirmation(m.content);
+    return `
+      <div class="message">
+        <div class="message-role ${m.role}">
+          <span class="role-icon">${m.role === 'user' ? '&#128100;' : '&#129302;'}</span>
+          ${m.role === 'user' ? 'You' : 'HealthCare Agent'}
+        </div>
+        <div class="message-content">${formatContent(m.content)}</div>
+        ${showButtons ? renderConfirmationButtons(i) : ''}
       </div>
-      <div class="message-content">${formatContent(m.content)}</div>
-    </div>
-  `).join('');
+    `;
+  }).join('');
   scrollToBottom();
 }
 
@@ -848,11 +1082,35 @@ function scrollToBottom() {
 }
 
 function formatContent(text) {
-  let html = escapeHtml(text);
+  // Extract thinking blocks before escaping
+  const thinkingBlocks = [];
+  let cleaned = text.replace(/<thinking>([\s\S]*?)<\/thinking>/gi, (_, content) => {
+    const idx = thinkingBlocks.length;
+    thinkingBlocks.push(content.trim());
+    return `__THINKING_${idx}__`;
+  });
+  // Strip any orphaned thinking tags (partial blocks from streaming)
+  cleaned = cleaned.replace(/<\/?thinking>/gi, '');
+
+  let html = escapeHtml(cleaned);
   html = html.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
   html = html.replace(/`([^`]+)`/g, '<code>$1</code>');
   html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
   html = html.replace(/\n- /g, '\n&#8226; ');
+
+  // Restore thinking blocks as accordions
+  thinkingBlocks.forEach((content, idx) => {
+    const wordCount = content.split(/\s+/).length;
+    const label = `Reasoning step · ${wordCount} words`;
+    const accordion = `<details class="thinking-block"><summary><span class="thinking-icon">\u{1F9E0}</span><span class="thinking-label">${label}</span></summary><div class="thinking-block-content">${escapeHtml(content)}</div></details>`;
+    html = html.replace(`__THINKING_${idx}__`, accordion);
+  });
+
+  // Render ticket IDs as clickable cards
+  html = html.replace(/\b(TKT-[A-Z0-9]{8})\b/g, (_, id) => {
+    return `<span class="ticket-inline-card" onclick="openTicketFromChat('${id}')"><span class="ticket-inline-icon">\u{1F3AB}</span><span class="ticket-inline-id">${id}</span><span class="ticket-inline-arrow">→</span></span>`;
+  });
+
   return html;
 }
 
@@ -935,6 +1193,7 @@ async function sendMessage() {
         prompt: text,
         session_id: chat.sessionId,
         model: state.model,
+        customer_id: CURRENT_CUSTOMER,
       }),
     });
 
@@ -972,6 +1231,14 @@ async function sendMessage() {
 
     chat.messages.push({ role: 'assistant', content: fullText });
     renderMessages(chat.messages);
+
+    if (detectConfirmation(fullText)) {
+      const msgIdx = chat.messages.length - 1;
+      const lastMsg = document.getElementById('messages').lastElementChild;
+      if (lastMsg && !lastMsg.querySelector('.action-buttons')) {
+        lastMsg.querySelector('.message-content').insertAdjacentHTML('afterend', renderConfirmationButtons(msgIdx));
+      }
+    }
 
   } catch (err) {
     const errText = 'Connection error: ' + err.message;
@@ -1282,6 +1549,204 @@ function renderObSummary() {
       </div>
     `).join('')}
   `;
+}
+
+// ============ Triage ============
+const PRIORITY_ICONS = { critical: '\u{1F534}', high: '\u{1F7E0}', medium: '\u{1F7E1}', low: '\u{1F7E2}' };
+const CATEGORY_ICONS = { billing: '\u{1F4B3}', clinical: '\u{1F3E5}', technical: '\u{1F527}', compliance: '\u{1F4DC}', account: '\u{1F464}' };
+
+let ticketsLoaded = false;
+
+function switchTriageTab(tab, btn) {
+  document.querySelectorAll('.triage-tab').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.triage-tab-pane').forEach(el => el.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('triage-' + tab).classList.add('active');
+}
+
+async function loadTickets() {
+  const status = document.getElementById('filter-status').value;
+  const priority = document.getElementById('filter-priority').value;
+  const category = document.getElementById('filter-category').value;
+
+  const params = new URLSearchParams();
+  if (status !== 'all') params.set('status', status);
+  if (priority !== 'all') params.set('priority', priority);
+  if (category !== 'all') params.set('category', category);
+
+  try {
+    const res = await fetch(apiUrl('api/tickets?' + params.toString()));
+    const tickets = await res.json();
+    renderTicketStats(tickets);
+    renderTicketList(tickets);
+    ticketsLoaded = true;
+  } catch (err) {
+    document.getElementById('ticket-list').innerHTML =
+      `<div class="triage-empty">Failed to load tickets: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderTicketStats(tickets) {
+  const total = tickets.length;
+  const open = tickets.filter(t => t.status === 'open').length;
+  const critical = tickets.filter(t => t.priority === 'critical').length;
+  const escalated = tickets.filter(t => t.escalate).length;
+  document.getElementById('triage-stats').innerHTML = `
+    <div class="triage-stat"><div class="triage-stat-value">${total}</div><div class="triage-stat-label">Total</div></div>
+    <div class="triage-stat"><div class="triage-stat-value" style="color:var(--accent)">${open}</div><div class="triage-stat-label">Open</div></div>
+    <div class="triage-stat"><div class="triage-stat-value" style="color:var(--danger)">${critical}</div><div class="triage-stat-label">Critical</div></div>
+    <div class="triage-stat"><div class="triage-stat-value" style="color:var(--warning)">${escalated}</div><div class="triage-stat-label">Escalated</div></div>
+  `;
+}
+
+function renderTicketList(tickets) {
+  const el = document.getElementById('ticket-list');
+  if (!tickets.length) {
+    el.innerHTML = '<div class="triage-empty">No tickets found. Submit one or adjust filters.</div>';
+    return;
+  }
+  el.innerHTML = tickets.map(t => {
+    const pIcon = PRIORITY_ICONS[t.priority] || '';
+    const cIcon = CATEGORY_ICONS[t.category] || '';
+    return `
+      <div class="ticket-card" onclick="this.classList.toggle('expanded')">
+        <div class="ticket-card-header">
+          <span class="ticket-card-id">${escapeHtml(t.ticket_id || '?')}</span>
+          <span class="ticket-card-subject">${escapeHtml(t.subject || 'No subject')}</span>
+          <div class="ticket-card-badges">
+            <span class="ticket-badge badge-${t.priority || 'medium'}">${pIcon} ${t.priority || 'medium'}</span>
+            <span class="ticket-badge badge-${t.status || 'open'}">${t.status || 'open'}</span>
+            ${t.escalate ? '<span class="ticket-badge badge-escalated">escalated</span>' : ''}
+          </div>
+        </div>
+        <div class="ticket-card-meta">
+          <span>${cIcon} ${t.category || 'general'}</span>
+          <span>Team: ${t.team || 'unassigned'}</span>
+          <span>${t.customer_name || 'unknown'} · ${t.customer_org || ''}</span>
+          <span>${t.created_at || ''}</span>
+        </div>
+        <div class="ticket-card-details">
+          ${t.body ? `<div style="margin-bottom:8px"><strong>Description:</strong><br>${escapeHtml(t.body)}</div>` : ''}
+          ${t.triage_reasoning ? `<div style="margin-bottom:8px"><strong>Triage reasoning:</strong> ${escapeHtml(t.triage_reasoning)}</div>` : ''}
+          ${t.assigned_to ? `<div><strong>Assigned to:</strong> ${escapeHtml(t.assigned_to)}</div>` : ''}
+          ${t.resolution_note ? `<div style="margin-top:8px"><strong>Resolution:</strong> ${escapeHtml(t.resolution_note)}</div>` : ''}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+async function submitTicket() {
+  const btn = document.getElementById('tf-submit-btn');
+  const subject = document.getElementById('tf-subject').value.trim();
+  const body = document.getElementById('tf-body').value.trim();
+  if (!subject || !body) {
+    showTriageResult('Subject and description are required.', 'var(--danger)');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Triaging...';
+  const resultEl = document.getElementById('tf-result');
+  resultEl.classList.remove('visible');
+
+  try {
+    const res = await fetch(apiUrl('api/tickets/triage'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sender_name: document.getElementById('tf-name').value.trim(),
+        sender_email: document.getElementById('tf-email').value.trim(),
+        sender_org: document.getElementById('tf-org').value.trim(),
+        customer_id: document.getElementById('tf-custid').value.trim(),
+        subject,
+        body,
+      }),
+    });
+    const data = await res.json();
+    const ticketLine = data.ticket_id ? `<strong>Ticket created: ${data.ticket_id}</strong><br><br>` : '';
+    showTriageResult(ticketLine + formatContent(data.message || 'Triaged successfully.'), 'var(--success)');
+    // Clear form
+    ['tf-name','tf-email','tf-org','tf-custid','tf-subject','tf-body'].forEach(id => document.getElementById(id).value = '');
+    loadTickets();
+  } catch (err) {
+    showTriageResult('Triage failed: ' + err.message, 'var(--danger)');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Submit & Triage';
+}
+
+function showTriageResult(html, color) {
+  const el = document.getElementById('tf-result');
+  el.innerHTML = html;
+  el.style.borderColor = color;
+  el.classList.add('visible');
+}
+
+function openTicketFromChat(ticketId) {
+  switchSidebarTab('triage');
+  setTimeout(() => {
+    const cards = document.querySelectorAll('.ticket-card');
+    for (const card of cards) {
+      const idEl = card.querySelector('.ticket-card-id');
+      if (idEl && idEl.textContent.trim() === ticketId) {
+        card.classList.add('expanded');
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.style.borderColor = 'var(--accent)';
+        setTimeout(() => { card.style.borderColor = ''; }, 3000);
+        return;
+      }
+    }
+  }, 500);
+}
+
+// ============ Confirmation Buttons ============
+const CONFIRM_PATTERNS = [
+  /would you like (me )?to\b/i,
+  /shall I\b/i,
+  /do you want (me )?to\b/i,
+  /can I proceed/i,
+  /do you confirm/i,
+  /please confirm/i,
+  /are you sure you want/i,
+  /do you authoris?e/i,
+  /may I\b/i,
+  /should I go ahead/i,
+  /want me to go ahead/i,
+  /confirm .*(authoriz|authoris)/i,
+  /please (confirm|verify|approve)/i,
+  /if so,? please confirm/i,
+];
+
+function detectConfirmation(text) {
+  return CONFIRM_PATTERNS.some(p => p.test(text));
+}
+
+function renderConfirmationButtons(messageIndex) {
+  return `
+    <div class="action-buttons" id="action-btns-${messageIndex}">
+      <button class="action-btn action-btn-confirm" onclick="handleConfirmation(${messageIndex}, 'Yes, please proceed.')">
+        <span class="btn-icon">&#10003;</span> Yes, proceed
+      </button>
+      <button class="action-btn action-btn-decline" onclick="handleConfirmation(${messageIndex}, 'No, do not proceed.')">
+        <span class="btn-icon">&#10005;</span> No, cancel
+      </button>
+      <button class="action-btn action-btn-escalate" onclick="handleConfirmation(${messageIndex}, 'Please escalate this to a human agent.')">
+        <span class="btn-icon">&#9888;</span> Escalate to human
+      </button>
+    </div>
+  `;
+}
+
+function handleConfirmation(messageIndex, response) {
+  const btnsEl = document.getElementById('action-btns-' + messageIndex);
+  if (btnsEl) {
+    btnsEl.innerHTML = `<div class="action-resolved">You responded: "${response}"</div>`;
+  }
+  const input = document.getElementById('chat-input');
+  input.value = response;
+  sendMessage();
 }
 
 // Init
