@@ -314,6 +314,103 @@ body {
 .doc-name { font-size: 13px; font-weight: 500; }
 .doc-meta { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
 
+/* Onboarding overlay */
+.onboarding-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+  display: flex; align-items: center; justify-content: center;
+}
+.onboarding-overlay.hidden { display: none; }
+.onboarding-modal {
+  background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: 16px; width: 560px; max-width: 94vw; max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+}
+.onboarding-header {
+  padding: 24px 28px 0; display: flex; flex-direction: column; gap: 4px;
+}
+.onboarding-header h2 { font-size: 20px; font-weight: 600; }
+.onboarding-header p { font-size: 13px; color: var(--text-secondary); }
+.onboarding-progress {
+  display: flex; gap: 4px; padding: 16px 28px 0;
+}
+.onboarding-progress-dot {
+  flex: 1; height: 3px; border-radius: 2px; background: var(--border); transition: background 0.3s;
+}
+.onboarding-progress-dot.done { background: var(--accent); }
+.onboarding-progress-dot.active { background: var(--accent); }
+.onboarding-body {
+  flex: 1; overflow-y: auto; padding: 20px 28px;
+}
+.onboarding-footer {
+  padding: 16px 28px; border-top: 1px solid var(--border);
+  display: flex; justify-content: space-between; align-items: center;
+}
+.ob-btn {
+  padding: 8px 20px; border-radius: 8px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all 0.15s; border: none; font-family: inherit;
+}
+.ob-btn-primary { background: var(--accent); color: #fff; }
+.ob-btn-primary:hover { background: var(--accent-hover); }
+.ob-btn-secondary { background: var(--bg-pill); color: var(--text-secondary); }
+.ob-btn-secondary:hover { background: var(--bg-pill-active); color: var(--text-primary); }
+.ob-btn:disabled { opacity: 0.4; cursor: default; }
+
+.ob-step { display: none; }
+.ob-step.active { display: block; }
+
+.ob-welcome-icon {
+  width: 80px; height: 80px; margin: 0 auto 16px;
+  border-radius: 50%; overflow: hidden;
+}
+.ob-welcome-icon canvas { width: 100%; height: 100%; border-radius: 50%; }
+.ob-welcome-text { text-align: center; }
+.ob-welcome-text h3 { font-size: 22px; font-weight: 600; margin-bottom: 8px; }
+.ob-welcome-text p { font-size: 14px; color: var(--text-secondary); line-height: 1.6; }
+.ob-org-badge {
+  display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 12px;
+  font-weight: 600; background: rgba(91,155,213,0.15); color: var(--accent); margin-top: 12px;
+}
+
+.ob-feature-card {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 10px;
+  display: flex; gap: 14px; align-items: flex-start;
+}
+.ob-feature-icon {
+  width: 36px; height: 36px; border-radius: 8px; background: rgba(91,155,213,0.12);
+  display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0;
+}
+.ob-feature-info h4 { font-size: 14px; font-weight: 600; margin-bottom: 4px; }
+.ob-feature-info p { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+
+.ob-pref-group { margin-bottom: 16px; }
+.ob-pref-label { font-size: 13px; font-weight: 500; margin-bottom: 6px; color: var(--text-primary); }
+.ob-pref-options { display: flex; flex-wrap: wrap; gap: 6px; }
+.ob-pref-option {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 500;
+  background: var(--bg-pill); border: 1px solid var(--border);
+  color: var(--text-secondary); cursor: pointer; transition: all 0.15s;
+  font-family: inherit;
+}
+.ob-pref-option:hover { background: var(--bg-pill-active); color: var(--text-primary); }
+.ob-pref-option.selected { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+.ob-complete-icon { text-align: center; font-size: 48px; margin-bottom: 12px; }
+.ob-complete-text { text-align: center; }
+.ob-complete-text h3 { font-size: 20px; font-weight: 600; margin-bottom: 8px; }
+.ob-complete-text p { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+.ob-summary {
+  background: var(--bg-secondary); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px; margin-top: 16px;
+}
+.ob-summary-title { font-size: 12px; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+.ob-summary-row { display: flex; padding: 3px 0; font-size: 13px; }
+.ob-summary-key { color: var(--text-muted); width: 160px; flex-shrink: 0; }
+.ob-summary-val { color: var(--text-primary); }
+.ob-saving { display: flex; align-items: center; gap: 8px; justify-content: center; margin-top: 12px; font-size: 13px; color: var(--text-secondary); }
+
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
@@ -439,6 +536,60 @@ body {
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Onboarding Overlay -->
+<div class="onboarding-overlay hidden" id="onboarding-overlay">
+  <div class="onboarding-modal">
+    <div class="onboarding-header">
+      <h2 id="ob-title">Welcome</h2>
+      <p id="ob-subtitle">Let's get you set up</p>
+    </div>
+    <div class="onboarding-progress">
+      <div class="onboarding-progress-dot active" id="ob-dot-0"></div>
+      <div class="onboarding-progress-dot" id="ob-dot-1"></div>
+      <div class="onboarding-progress-dot" id="ob-dot-2"></div>
+      <div class="onboarding-progress-dot" id="ob-dot-3"></div>
+    </div>
+    <div class="onboarding-body" id="ob-body">
+      <!-- Step 0: Welcome -->
+      <div class="ob-step active" id="ob-step-0">
+        <div class="ob-welcome-icon"><canvas id="ob-ferrofluid" width="160" height="160"></canvas></div>
+        <div class="ob-welcome-text">
+          <h3 id="ob-welcome-name">Welcome!</h3>
+          <p id="ob-welcome-desc">We'll walk you through the key features of your plan and set up your preferences so the platform works exactly the way you need it.</p>
+          <div class="ob-org-badge" id="ob-org-badge"></div>
+        </div>
+      </div>
+      <!-- Step 1: Features -->
+      <div class="ob-step" id="ob-step-1">
+        <p style="font-size:13px; color: var(--text-secondary); margin-bottom: 14px;">Here's what's included in your plan. We'll help you get the most out of each feature.</p>
+        <div id="ob-features"></div>
+      </div>
+      <!-- Step 2: Preferences -->
+      <div class="ob-step" id="ob-step-2">
+        <p style="font-size:13px; color: var(--text-secondary); margin-bottom: 16px;">Set your preferences so we can personalise your experience. You can change these anytime in your profile.</p>
+        <div id="ob-preferences"></div>
+      </div>
+      <!-- Step 3: Complete -->
+      <div class="ob-step" id="ob-step-3">
+        <div class="ob-complete-icon">&#10024;</div>
+        <div class="ob-complete-text">
+          <h3>You're all set!</h3>
+          <p>Your preferences have been saved and will be remembered across sessions.</p>
+        </div>
+        <div class="ob-summary" id="ob-summary"></div>
+        <div class="ob-saving hidden" id="ob-saving">
+          <div class="typing-indicator"><span></span><span></span><span></span></div>
+          Saving your preferences...
+        </div>
+      </div>
+    </div>
+    <div class="onboarding-footer">
+      <button class="ob-btn ob-btn-secondary" id="ob-back" onclick="obBack()" style="visibility:hidden">Back</button>
+      <button class="ob-btn ob-btn-primary" id="ob-next" onclick="obNext()">Get Started</button>
     </div>
   </div>
 </div>
@@ -887,12 +1038,234 @@ function switchProfileTab(tab, btn) {
   document.getElementById('pane-' + tab).classList.add('active');
 }
 
+// ============ Onboarding ============
+const FEATURE_ICONS = {
+  video_consult: '&#128247;', e_prescriptions: '&#128138;', patient_portal: '&#128203;',
+  drug_testing: '&#129514;', fitness_for_duty: '&#128170;', remote_telehealth: '&#127760;',
+  injury_tracking: '&#129657;', player_wellness: '&#128154;', telehealth_consult: '&#128249;',
+  chain_of_custody: '&#128279;', result_reporting: '&#128202;',
+};
+
+let obData = null;
+let obStep = 0;
+let obPrefs = {};
+const OB_TOTAL_STEPS = 4;
+
+function shouldShowOnboarding() {
+  return !localStorage.getItem('onboarding_complete_' + CURRENT_CUSTOMER);
+}
+
+async function startOnboarding() {
+  try {
+    const res = await fetch(apiUrl(`api/onboarding/${CURRENT_CUSTOMER}`));
+    obData = await res.json();
+    if (obData.error) return;
+
+    const c = obData.customer;
+    document.getElementById('ob-welcome-name').textContent = `Welcome, ${c.name}!`;
+    document.getElementById('ob-welcome-desc').textContent =
+      `We'll walk you through the key features of your ${c.plan} plan and set up your preferences so the platform works exactly the way you need it.`;
+    document.getElementById('ob-org-badge').textContent = obData.content.label;
+
+    // Render features
+    const featuresEl = document.getElementById('ob-features');
+    featuresEl.innerHTML = obData.content.features.map(f => `
+      <div class="ob-feature-card">
+        <div class="ob-feature-icon">${FEATURE_ICONS[f.key] || '&#9881;'}</div>
+        <div class="ob-feature-info">
+          <h4>${f.name}</h4>
+          <p>${f.desc}</p>
+        </div>
+      </div>
+    `).join('');
+
+    // Render preferences
+    const prefsEl = document.getElementById('ob-preferences');
+    prefsEl.innerHTML = obData.content.preferences.map(p => `
+      <div class="ob-pref-group">
+        <div class="ob-pref-label">${p.label}</div>
+        <div class="ob-pref-options">
+          ${p.options.map(opt => `
+            <button class="ob-pref-option" onclick="selectPref('${p.key}', '${opt}', this)">${opt}</button>
+          `).join('')}
+        </div>
+      </div>
+    `).join('');
+
+    // Mini ferrofluid for onboarding
+    initObFerrofluid();
+
+    obStep = 0;
+    obPrefs = {};
+    updateObStep();
+    document.getElementById('onboarding-overlay').classList.remove('hidden');
+  } catch (err) {
+    console.error('Onboarding load failed:', err);
+  }
+}
+
+function initObFerrofluid() {
+  const canvas = document.getElementById('ob-ferrofluid');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2;
+  const pts = [];
+  for (let i = 0; i < 8; i++) {
+    pts.push({
+      angle: (i / 8) * Math.PI * 2,
+      speed: 0.3 + Math.random() * 0.5,
+      amp: 8 + Math.random() * 12,
+      phase: Math.random() * Math.PI * 2,
+    });
+  }
+  const R = 30;
+  function draw(t) {
+    ctx.clearRect(0, 0, W, H);
+    const s = t / 1000;
+    ctx.beginPath();
+    const coords = pts.map(p => {
+      const r = R + Math.sin(s * p.speed + p.phase) * p.amp;
+      return { x: cx + Math.cos(p.angle + s * 0.15) * r, y: cy + Math.sin(p.angle + s * 0.15) * r };
+    });
+    ctx.moveTo(coords[0].x, coords[0].y);
+    for (let i = 0; i < coords.length; i++) {
+      const curr = coords[i], next = coords[(i + 1) % coords.length];
+      ctx.quadraticCurveTo(
+        (curr.x + next.x) / 2 + (next.x - curr.x) * 0.1,
+        (curr.y + next.y) / 2 + (next.y - curr.y) * 0.1,
+        next.x, next.y
+      );
+    }
+    ctx.closePath();
+    const grad = ctx.createRadialGradient(cx - 6, cy - 8, 4, cx, cy, R + 12);
+    grad.addColorStop(0, '#6ec6ff');
+    grad.addColorStop(0.3, '#3a8fd4');
+    grad.addColorStop(0.7, '#1a4a6e');
+    grad.addColorStop(1, '#0d2840');
+    ctx.fillStyle = grad;
+    ctx.fill();
+    requestAnimationFrame(draw);
+  }
+  requestAnimationFrame(draw);
+}
+
+function selectPref(key, value, btn) {
+  obPrefs[key] = value;
+  const group = btn.closest('.ob-pref-group');
+  group.querySelectorAll('.ob-pref-option').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function updateObStep() {
+  const titles = ['Welcome', 'Your Features', 'Your Preferences', 'All Set'];
+  const subtitles = ["Let's get you set up", 'What your plan includes', 'Personalise your experience', 'Onboarding complete'];
+
+  document.getElementById('ob-title').textContent = titles[obStep];
+  document.getElementById('ob-subtitle').textContent = subtitles[obStep];
+
+  for (let i = 0; i < OB_TOTAL_STEPS; i++) {
+    const dot = document.getElementById('ob-dot-' + i);
+    dot.classList.toggle('done', i < obStep);
+    dot.classList.toggle('active', i === obStep);
+  }
+
+  document.querySelectorAll('.ob-step').forEach((el, i) => el.classList.toggle('active', i === obStep));
+
+  const backBtn = document.getElementById('ob-back');
+  backBtn.style.visibility = obStep === 0 || obStep === 3 ? 'hidden' : 'visible';
+
+  const nextBtn = document.getElementById('ob-next');
+  if (obStep === 0) nextBtn.textContent = 'Get Started';
+  else if (obStep === 1) nextBtn.textContent = 'Next';
+  else if (obStep === 2) nextBtn.textContent = 'Complete Setup';
+  else nextBtn.textContent = 'Start Chatting';
+}
+
+function obBack() {
+  if (obStep > 0) { obStep--; updateObStep(); }
+}
+
+async function obNext() {
+  if (obStep < OB_TOTAL_STEPS - 1) {
+    obStep++;
+    updateObStep();
+
+    // On reaching completion step, save preferences
+    if (obStep === 3) {
+      await saveOnboardingPrefs();
+    }
+  } else {
+    // Close onboarding
+    localStorage.setItem('onboarding_complete_' + CURRENT_CUSTOMER, 'true');
+    document.getElementById('onboarding-overlay').classList.add('hidden');
+    document.getElementById('chat-input').focus();
+  }
+}
+
+async function saveOnboardingPrefs() {
+  if (Object.keys(obPrefs).length === 0) {
+    renderObSummary();
+    return;
+  }
+
+  const savingEl = document.getElementById('ob-saving');
+  savingEl.classList.remove('hidden');
+  const nextBtn = document.getElementById('ob-next');
+  nextBtn.disabled = true;
+
+  try {
+    const res = await fetch(apiUrl('api/onboarding/complete'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        customer_id: CURRENT_CUSTOMER,
+        preferences: obPrefs,
+        session_id: generateSessionId(),
+      }),
+    });
+    await res.json();
+  } catch (e) {
+    console.error('Preference save error:', e);
+  }
+
+  savingEl.classList.add('hidden');
+  nextBtn.disabled = false;
+  renderObSummary();
+}
+
+function renderObSummary() {
+  const el = document.getElementById('ob-summary');
+  if (Object.keys(obPrefs).length === 0) {
+    el.innerHTML = '<p style="font-size:13px; color: var(--text-muted);">No preferences set. You can configure these anytime in chat.</p>';
+    return;
+  }
+  const prefLabels = {};
+  if (obData && obData.content) {
+    obData.content.preferences.forEach(p => { prefLabels[p.key] = p.label; });
+  }
+  el.innerHTML = `
+    <div class="ob-summary-title">Your Preferences</div>
+    ${Object.entries(obPrefs).map(([k, v]) => `
+      <div class="ob-summary-row">
+        <span class="ob-summary-key">${prefLabels[k] || k}</span>
+        <span class="ob-summary-val">${v}</span>
+      </div>
+    `).join('')}
+  `;
+}
+
 // Init
 updateChatList();
 document.getElementById('chat-input').addEventListener('input', function() {
   document.getElementById('send-btn').disabled = !this.value.trim();
 });
-document.getElementById('chat-input').focus();
+
+if (shouldShowOnboarding()) {
+  startOnboarding();
+} else {
+  document.getElementById('chat-input').focus();
+}
 </script>
 </body>
 </html>
